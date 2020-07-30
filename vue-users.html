@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Users</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    </head>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        #app{
+            max-width: 1200px;
+            margin:  0 auto;
+            padding: 20px;
+        }
+        .month-list{
+            display: flex;
+            justify-content: space-between;
+            padding: 2em 0;
+        }
+        .month-item{
+            padding: 1em;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .users{
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -5px;
+            margin-right: -5px;
+        }
+        .user{
+            width: calc(25% - 10px);
+            border: 1px solid black;
+            padding: 20px;
+            margin: 5px ;
+            font-size: 14px;
+        }
+        .grey{
+            background: rgba(128, 128, 128, 0.5);
+        }
+        .blue{
+            background: rgba(0, 0, 255, 0.5);
+        }
+        .green{
+            background: rgba(0, 128, 0, 0.5);
+        }
+        .red{
+            background: rgba(255, 0, 0, 0.5);
+        }
+    </style>
+    <body>
+        <div id="app">
+            <button v-on:click="filteredUsers=users">
+                показать всех {{users.length}}
+            </button>
+            <div class="month-list">
+                <month
+                    class="month-item"
+                    v-for="month in months"
+                    v-bind:month="month"
+                    v-bind:key="month.name"
+                    v-on:click.native="showList(month.name)"
+                    v-bind:class="calcColor(month.users)">
+                </month>
+            </div>
+            <div class="users">
+                <user
+                    class="user"
+                    v-for="user in filteredUsers"
+                    v-bind:user="user"
+                    v-bind:key="user.id"
+                    
+                ></user>
+            </div>
+        </div>
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        let months = [
+        {
+            name:"Jan",
+            users:0
+        },
+        {
+            name:"Feb",
+            users:0
+        },
+        {
+            name:"Mar",
+            users:0
+        },
+        {
+            name:"Apr",
+            users:0
+        },
+        {
+            name:"May",
+            users:0
+        },
+        {
+            name:"June",
+            users:0
+        },
+        {
+            name:"July",
+            users:0
+        },
+        {
+            name:"Aug",
+            users:0
+        },
+        {
+            name:"Sept",
+            users:0
+        },
+        {
+            name:"Oct",
+            users:0
+        },
+        {
+            name:"Nov",
+            users:0
+        },
+        {
+            name:"Dec",
+            users:0
+        },
+        ]
+        Vue.component('user', {
+            props: ['user'],
+            template: `
+                <div>
+                    <p>{{ user.id }}</p> 
+                    <h2>{{ user.firstName }}</h2>
+                    <h3>{{ user.lastName }}</h3>
+                    <p>{{ new Date(user.dob) }}</p>
+                </div>
+            `
+        })
+        Vue.component('month', {
+            props: ['month'],
+            template: `
+                <button>
+                    <p>{{ month.name }}</p>
+                    <p> users {{ month.users }}</p>
+                </button>
+            `
+        })
+        var app3 = new Vue({
+            el: "#app",
+            data: {
+                seen: true,
+                users: [],
+                months:months,
+                filteredUsers:[]
+            },
+            mounted:function (){
+                this.getUsers();
+            },
+            methods: {
+                getUsers(){
+                    fetch('https://yalantis-react-school-api.yalantis.com/api/task0/users')
+                        .then((response) => {
+                            return response.json();
+                        })
+                        .then((users) => {
+                            this.users=users
+                            this.filteredUsers=users
+                            this.calculateMonthUser();
+                        });
+                },
+                calculateMonthUser(){
+                    this.users.forEach(user => {
+                        this.months[new Date(user.dob).getMonth()].users++
+                    });
+                },
+                showList: function (name) {
+                    this.filteredUsers = this.users.filter(user => {
+                        if(months[new Date(user.dob).getMonth()].name === name){
+                            return user
+                        }
+                    });
+                },
+                calcColor(counter){
+                    if(counter >=0 && counter <=2){
+                        return "grey"
+                    }
+                    if(counter >= 3 && counter <=6){
+                        return "blue"
+                    }
+                    if(counter >= 7 && counter <=10){
+                        return "green"
+                    }
+                    if(counter >11){
+                        return "red"
+                    }
+                }
+            }
+        });
+    </script>
+</html>

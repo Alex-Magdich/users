@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Users</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    </head>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        #app{
+            max-width: 1200px;
+            margin:  0 auto;
+            padding: 20px;
+        }
+        .month-list{
+            display: flex;
+            justify-content: space-between;
+            padding: 2em 0;
+        }
+        .month-list button{
+            padding: 1em;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .users{
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -5px;
+            margin-right: -5px;
+        }
+        .user{
+            width: calc(25% - 10px);
+            border: 1px solid black;
+            padding: 20px;
+            margin: 5px ;
+            font-size: 14px;
+        }
+        .grey{
+            background: rgba(128, 128, 128, 0.5);
+        }
+        .blue{
+            background: rgba(0, 0, 255, 0.5);
+        }
+        .green{
+            background: rgba(0, 128, 0, 0.5);
+        }
+        .red{
+            background: rgba(255, 0, 0, 0.5);
+        }
+    </style>
+    <body>
+        <div id="app">
+            
+        </div>
+    </body>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script type="text/babel">
+
+        let monthsData = [
+            {
+                name:"Jan",
+                users:0
+            },
+            {
+                name:"Feb",
+                users:0
+            },
+            {
+                name:"Mar",
+                users:0
+            },
+            {
+                name:"Apr",
+                users:0
+            },
+            {
+                name:"May",
+                users:0
+            },
+            {
+                name:"June",
+                users:0
+            },
+            {
+                name:"July",
+                users:0
+            },
+            {
+                name:"Aug",
+                users:0
+            },
+            {
+                name:"Sept",
+                users:0
+            },
+            {
+                name:"Oct",
+                users:0
+            },
+            {
+                name:"Nov",
+                users:0
+            },
+            {
+                name:"Dec",
+                users:0
+            }
+        ]
+        class App extends React.Component{
+            constructor(props) {
+                super(props);
+                this.state = {
+                    error: null,
+                    isLoaded: false,
+                    users: [],
+                    months:[],
+                    filteredUsers:[]
+                };
+                this.handleClick = this.handleClick.bind(this);
+                this.showAll = this.showAll.bind(this);
+            }
+            componentDidMount() {
+                fetch('https://yalantis-react-school-api.yalantis.com/api/task0/users')
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        result.forEach(user => {
+                            monthsData[getMonth(user.dob)].users++
+                        });
+                        this.setState({
+                            isLoaded: true,
+                            users: result,
+                            filteredUsers: result,
+                            months:monthsData
+                        });
+                    },
+                    (error) => {
+                        this.setState({
+                            isLoaded: true,
+                            error
+                        });
+                    }
+                )
+            }
+            showAll(){
+                this.setState(state => ({
+                    filteredUsers: this.state.users
+                }));
+            }
+            handleClick(name) {
+                this.setState(state => ({
+                    filteredUsers: this.state.users.filter(user => this.state.months[getMonth(user.dob)].name === name)
+                }));
+            }
+            render() {
+                const { error, isLoaded ,users , months , filteredUsers } = this.state;
+                if (error) {
+                    return <div>Ошибка: {error.message}</div>;
+                } else if (!isLoaded) {
+                    return <div>Загрузка...</div>;
+                } else {
+                    return (
+                        <div>
+                            <button onClick={this.showAll}>
+                                показать всех {users.length}
+                            </button>
+                            <div className="month-list">
+                                {months.map(month => (
+                                    <button onClick={() => this.handleClick(month.name)} key={month.name} className={calcColor(month.users)}>
+                                        <p>{ month.name }</p>
+                                        <p> users { month.users }</p>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="users">
+                                {filteredUsers.map(user => (
+                                    <div className="user" key={user.id}>
+                                        <p>{ user.id }</p> 
+                                        <h2>{ user.firstName }</h2>
+                                        <h3>{ user.lastName }</h3>
+                                        <p>{ getParsedDate(user.dob) }</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+            }
+        }
+
+        ReactDOM.render(
+            <App />,
+            document.getElementById('app')
+        );
+        function calcColor(counter){
+            if(counter >=0 && counter <=2){
+                return "grey"
+            }
+            if(counter >= 3 && counter <=6){
+                return "blue"
+            }
+            if(counter >= 7 && counter <=10){
+                return "green"
+            }
+            if(counter >11){
+                return "red"
+            }
+        }
+        function getParsedDate(strDate){
+            var strSplitDate = String(strDate).split(' ');
+            var date = new Date(strSplitDate[0]);
+            var dd = date.getDate();
+            var mm = date.getMonth() + 1; //January is 0!
+
+            var yyyy = date.getFullYear();
+            if (dd < 10) {
+                dd = '0' + dd;
+            }
+            if (mm < 10) {
+                mm = '0' + mm;
+            }
+            date =  dd + "-" + mm + "-" + yyyy;
+            return date.toString();
+        }
+        function getMonth(strDate){
+            var strSplitDate = String(strDate).split(' ');
+            var date = new Date(strSplitDate[0]);
+            var mm = date.getMonth() + 1; //January is 0!
+            if (mm < 10) {
+                mm = '0' + mm;
+            }
+            return date.getMonth();
+        }
+    </script>
+</html>
